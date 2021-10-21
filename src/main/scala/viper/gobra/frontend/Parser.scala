@@ -42,6 +42,7 @@ object Parser {
   def parse(input: Vector[Path], specOnly: Boolean = false)(config: Config): Either[Vector[VerifierError], PPackage] = {
     val preprocessedSources = input
       .map{ getSource }
+      .map{ Gobrafier.gobrafy }
       .map{ source => SemicolonPreprocessor.preprocess(source)(config) }
     for {
       parseAst <- parseSources(preprocessedSources, specOnly)(config)
@@ -245,7 +246,7 @@ object Parser {
 
       def replace(n: PImplicitQualifiedImport): Option[PExplicitQualifiedImport] = {
         val qualifier = for {
-          qualifierName <- PackageResolver.getQualifier(n, config.includeDirs)
+          qualifierName <- PackageResolver.getQualifier(n, config.moduleName, config.includeDirs)
           // create a new PIdnDef node and set its positions according to the old node (PositionedRewriter ensures that
           // the same happens for the newly created PExplicitQualifiedImport)
           idnDef = PIdnDef(qualifierName)
@@ -1056,7 +1057,7 @@ object Parser {
       "axiom" ~> "{" ~> expression <~ eos.? <~ "}" ^^ PDomainAxiom
 
     lazy val structType: Parser[PStructType] =
-      "struct" ~> "{" ~> repsep(structClause, eos) <~ eos.? <~ "}" ^^ PStructType
+      "struct" ~> "{" ~> repsep(structClause, eos) <~ eos.? <~ "}" ^^ { case clauses => PStructType(clauses) }
 
     lazy val structClause: Parser[PStructClause] =
       fieldDecls | embeddedDecl
@@ -1264,7 +1265,8 @@ object Parser {
     lazy val idnImportPath: Parser[String] =
       // this allows for seemingly meaningless paths such as ".......". It is not problematic that Gobra parses these
       // paths given that it will throw an error if they do not exist in the filesystem
-      "\"" ~> "[.a-zA-Z0-9_/]*".r <~ "\""
+      // the following regex matches an arbitrary string start and ending with double quotes
+      "\"" ~> "[^\"]*".r <~ "\""
       // """[^\P{L}\P{M}\P{N}\P{P}\P{S}!\"#$%&'()*,:;<=>?[\\\]^{|}\x{FFFD}]+""".r // \P resp. \p is currently not supported
 
     /**
