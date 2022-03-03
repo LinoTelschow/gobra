@@ -69,8 +69,8 @@ object Parser {
     val t0 = System.nanoTime()/1000000000.0
     val result = block    // call-by-name
     val t1 = System.nanoTime()/1000000000.0
-    println("+#RESULT={\"filename\": \""+ filename + "\", \"parser\": \"" + parser + "\", \"time\":" + (t1 - t0)
-      + ", \"nodes\":null}")
+    // println("+#RESULT={\"filename\": \""+ filename + "\", \"parser\": \"" + parser + "\", \"time\":" + (t1 - t0)
+    //   + ", \"nodes\":null}")
     result
 }
   type SourceCacheKey = String
