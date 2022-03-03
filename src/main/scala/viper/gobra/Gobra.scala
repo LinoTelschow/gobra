@@ -214,21 +214,26 @@ class GobraFrontend {
 object GobraRunner extends GobraFrontend with StrictLogging {
   def main(args: Array[String]): Unit = {
     try {
+      val startTime = System.currentTimeMillis()
       val scallopGobraconfig = new ScallopGobraConfig(args.toSeq)
       val config = scallopGobraconfig.config
       val executor: GobraExecutionContext = new DefaultGobraExecutionContext()
       val verifier = createVerifier()
       val resultFuture = verifier.verify(config)(executor)
       val result = Await.result(resultFuture, Duration.Inf)
+      val endTime = System.currentTimeMillis()
+      val delta = endTime - startTime
       executor.terminate()
 
       result match {
         case VerifierResult.Success =>
           logger.info(s"${verifier.name} found no errors")
+          println(s"verification time: $delta ms")
           sys.exit(0)
         case VerifierResult.Failure(errors) =>
           logger.error(s"${verifier.name} has found ${errors.length} error(s):")
           errors foreach (e => logger.error(s"\t${e.formattedMessage}"))
+          println(s"verification time: $delta ms")
           sys.exit(1)
       }
     } catch {
