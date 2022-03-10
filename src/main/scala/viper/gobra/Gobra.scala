@@ -214,10 +214,10 @@ class GobraFrontend {
 object GobraRunner extends GobraFrontend with StrictLogging {
   def main(args: Array[String]): Unit = {
     try {
-      val startTime = System.currentTimeMillis()
       val scallopGobraconfig = new ScallopGobraConfig(args.toSeq)
       val config = scallopGobraconfig.config
       val executor: GobraExecutionContext = new DefaultGobraExecutionContext()
+      val startTime = System.currentTimeMillis()
       val verifier = createVerifier()
       val resultFuture = verifier.verify(config)(executor)
       val result = Await.result(resultFuture, Duration.Inf)
